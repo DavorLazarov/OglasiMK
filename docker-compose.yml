@@ -1,0 +1,27 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: classifieds-db
+    restart: always
+    environment:
+      POSTGRES_USER: davor_user
+      POSTGRES_PASSWORD: davor_password
+      POSTGRES_DB: classifieds_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  web:
+    build: .
+    container_name: classifieds-web
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: "postgresql://davor_user:davor_password@db:5432/classifieds_db"
+    depends_on:
+      - db
+
+volumes:
+  pgdata:
