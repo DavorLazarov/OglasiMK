@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+}
+
+model User {
+  id        Int        @id @default(autoincrement())
+  email     String     @unique
+  password  String
+  name      String?
+  createdAt DateTime   @default(now())
+  favorites Favorite[]
+  ads       Ad[]
+}
+
+model Ad {
+  id          Int        @id @default(autoincrement())
+  title       String
+  description String
+  price       Float
+  category    String
+  location    String
+  image       String?
+  userId      Int
+  author      User       @relation(fields: [userId], references: [id])
+  favoritedBy Favorite[]
+  createdAt   DateTime   @default(now())
+  details     String?    // Овде ќе ги чуваме brand, model, area како JSON string
+  phone       String?
+  email       String?
+}
+
+model Favorite {
+  userId Int
+  adId   Int
+  user   User @relation(fields: [userId], references: [id])
+  ad     Ad   @relation(fields: [adId], references: [id])
+
+  @@id([userId, adId])
+}
