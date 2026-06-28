@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: davor-namespace
+data:
+  DB_PORT: "5432"
+  APP_ENV: "production"
