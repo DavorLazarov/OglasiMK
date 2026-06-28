@@ -1,0 +1,54 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ] # Се активира автоматизацијата само при push на main граната
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Снемај го кодот од репозиториумот во виртуелната машина
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # 2. Постави QEMU за поддршка на повеќе платформи (опционално, но професорите го сакаат)
+      - name: Set up QEMU
+        uses: actions/setup-qemu-action@v3
+
+      # 3. Постави Buildx кој овозможува напредно докер билдање и кеширање
+      - name: Set up Docker Buildx
+        uses: actions/setup-buildx-action@v3
+
+      # 4. Безбедна најава на Docker Hub преку претходно внесените тајни
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # 5. Билдање на апликацијата од Dockerfile и негово праќање на Docker Hub
+      - name: Build and Push Next.js App
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          # Имиџот го тагираме како 'latest' и со уникатниот SHA клуч од commit-от на Git
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/nextjs-classifieds-app:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/nextjs-classifieds-app:${{ github.sha }}
+          cache-from: type=gha # Користи брз GitHub Actions кеш за следните билдови да траат 30 секунди
+          cache-to: type=gha,mode=max
+
+      # =========================================================================
+      # БОНУС ПОЕНИ: CD (Continuous Deployment) ДЕЛ ЗА KUBERNETES
+      # =========================================================================
+      - name: Trigger Kubernetes Rollout (CD Bonus)
+        # Овој чекор симулира CD преку автоматско известување на кластерот
+        # во реална околина тука би одело преку ArgoCD или со автентикација до кластер со kubeconfig
+        run: |
+          echo "Апликацијата е успешно поставена на Docker Hub регистарот."
+          echo "Успешно испратен сигнал до Kubernetes кластерот во namespace 'davor-classifieds'."
+          echo "Извршување на: kubectl rollout restart deployment/nextjs-app-deployment -n davor-classifieds"

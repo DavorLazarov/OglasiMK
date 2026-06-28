@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+provider = "postgresql" // Ова смени го од "sqlite" во "postgresql"
   url = env("DATABASE_URL")
 }
 
