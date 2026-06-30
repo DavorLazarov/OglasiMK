@@ -1,27 +1,26 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nextjs-app
+  name: backend-deployment
   namespace: davor-namespace
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: nextjs-web
+      app: backend-app
   template:
     metadata:
       labels:
-        app: nextjs-web
+        app: backend-app
     spec:
       containers:
-        - name: web
+        - name: backend
           image: davordavor/nextjs-classifieds-app:latest
           ports:
             - containerPort: 3000
           env:
             - name: DATABASE_URL
               value: "postgresql://davor_user:davor_password@postgres-service:5432/oglasi_db"
-            # Поврзување со ConfigMap
             - name: APP_ENV
               valueFrom:
                 configMapKeyRef:
@@ -32,34 +31,3 @@ spec:
                 configMapKeyRef:
                   name: app-config
                   key: DB_PORT
-
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: web-service
-  namespace: davor-namespace
-spec:
-  type: NodePort
-  ports:
-    - port: 80
-      targetPort: 3000
-  selector:
-    app: nextjs-web
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: app-ingress
-  namespace: davor-namespace
-spec:
-  rules:
-    - http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: web-service
-                port:
-                  number: 80
